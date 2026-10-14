@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BÉTON BRUT // MASTERPLAN — Parametric Brutalist City Builder & Architectural Simulator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,700;1,400&family=Space+Grotesk:wght@500;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div id="app">
+      <!-- 3D WebGL Viewport -->
+      <div id="viewport-container"></div>
+
+      <!-- Top Architectural Title Block & Global Experience Bar -->
+      <header id="top-bar" class="brut-panel">
+        <div class="brand-block">
+          <div class="brand-badge">THEFOCUS.AI // ARCH-COMP</div>
+          <div class="brand-titles">
+            <h1>BÉTON BRUT <span class="accent">//</span> MASTERPLAN</h1>
+            <p id="masterplan-subtitle">SECTOR IV // NEW BARBICAN-CHANDIGARH</p>
+          </div>
+        </div>
+
+        <!-- Simulation Mode Selector -->
+        <div class="top-group">
+          <span class="group-label">SIMULATION ENGINE</span>
+          <div class="segmented-row" id="sim-mode-bar">
+            <button class="seg-btn active" data-sim="none" title="Pure Architectural Design & Sculpting Studio">
+              00 STUDIO
+            </button>
+            <button class="seg-btn" data-sim="solar" title="Heliodon Sun-Path, Shadow Length & Brise-Soleil Shading Efficiency">
+              01 SOLAR HELIODON
+            </button>
+            <button class="seg-btn" data-sim="circulation" title="Pedestrian Flow, Elevators & Elevated Streets-in-the-Sky Connectivity">
+              02 STREETS IN SKY
+            </button>
+            <button class="seg-btn" data-sim="wind" title="Aerodynamic Venturi Canyon Effect & Pilotis Ground Porosity">
+              03 VENTURI WIND
+            </button>
+            <button class="seg-btn" data-sim="structural" title="Tectonic Load Path, Core Compression & Cantilever Bending Stress">
+              04 LOAD PATH
+            </button>
+          </div>
+        </div>
+
+        <!-- Camera / Experience Selector -->
+        <div class="top-group">
+          <span class="group-label">EXPERIENCE / CAMERA</span>
+          <div class="segmented-row" id="view-mode-bar">
+            <button class="seg-btn active" data-view="orbit" title="3D Perspective Masterplan Orbit">
+              ORBIT
+            </button>
+            <button class="seg-btn" data-view="axonometric" title="True Parallel Orthographic Architectural Drawing Projection">
+              AXONOMETRIC
+            </button>
+            <button class="seg-btn" data-view="street" title="First-Person 1.7m Eye-Level Flâneur Walk (WASD + Mouse)">
+              FLÂNEUR WALK
+            </button>
+            <button class="seg-btn" data-view="drone" title="Autonomous Orbital Helicopter Inspection">
+              DRONE TOUR
+            </button>
+          </div>
+        </div>
+
+        <!-- Utility Actions -->
+        <div class="top-actions">
+          <button id="btn-audio-toggle" class="icon-btn active" title="Toggle Tactile Concrete Audio Synthesis">
+            🔊 AUDIO
+          </button>
+          <button id="btn-snapshot" class="icon-btn accent-btn" title="Capture Framed Architectural Monograph Plate PNG">
+            📸 PLATE EXPORT
+          </button>
+          <button id="btn-export-json" class="icon-btn" title="Export Masterplan Blueprint JSON">
+            ⬇ JSON
+          </button>
+        </div>
+      </header>
+
+      <!-- Left Dock: Urban Tools, Masterplan Presets & 10 Brutalist Archetypes -->
+      <aside id="left-dock" class="brut-panel">
+        <div class="panel-section">
+          <div class="section-header">
+            <span>01 // MASTERPLAN SECTOR</span>
+            <select id="masterplan-select" class="brut-select" title="Load Curated Brutalist Masterplan">
+              <option value="chandigarh_barbican">New Barbican-Chandigarh</option>
+              <option value="tokyo_metabolist">Tokyo Metabolist Bay 1972</option>
+              <option value="eco_brutalism">Biosphere IX Eco-Brutalism</option>
+              <option value="tabula_rasa">Tabula Rasa (Blank Plinth)</option>
+            </select>
+          </div>
+
+          <!-- Interactive Tool Bar -->
+          <div class="tool-grid" id="tool-mode-bar">
+            <button class="tool-btn active" data-tool="select" title="Select & Sculpt Existing Buildings">
+              <span class="tool-key">[V]</span> SELECT / SCULPT
+            </button>
+            <button class="tool-btn" data-tool="place" title="Click Grid to Pour New Brutalist Building">
+              <span class="tool-key">[B]</span> POUR BUILDING
+            </button>
+            <button class="tool-btn" data-tool="skybridge" title="Click Two Buildings to Span an Elevated Skybridge">
+              <span class="tool-key">[L]</span> SKYBRIDGE LINK
+            </button>
+            <button class="tool-btn" data-tool="pipette" title="Sample Tectonic DNA From a Building">
+              <span class="tool-key">[I]</span> PIPETTE DNA
+            </button>
+            <button class="tool-btn danger-btn" data-tool="demolish" title="Click a Building to Demolish It">
+              <span class="tool-key">[X]</span> DEMOLISH
+            </button>
+          </div>
+
+          <!-- Skybridge Level Selector (visible when Skybridge tool is active or always accessible) -->
+          <div id="skybridge-config" class="sub-control-box hidden">
+            <div class="slider-row">
+              <label>SKYBRIDGE DECK LEVEL</label>
+              <span id="val-skybridge-level">LVL +3</span>
+            </div>
+            <input type="range" id="inp-skybridge-level" min="1" max="14" step="1" value="3" />
+            <p class="micro-hint">Click Origin Building → Click Destination Building to span walkway.</p>
+          </div>
+        </div>
+
+        <!-- 10 Iconic Brutalist Archetypes -->
+        <div class="panel-section flex-grow-section">
+          <div class="section-header">
+            <span>02 // BRUTALIST ARCHETYPES</span>
+            <span class="badge-tag">10 TYPOLOGIES</span>
+          </div>
+          <p class="micro-hint">
+            Select an archetype to place on the grid, or click <strong>APPLY TO SELECTED</strong> to morph current building.
+          </p>
+          <div id="archetype-list" class="archetype-scroll"></div>
+        </div>
+
+        <!-- Live Urban Telemetry & Masterplan Metrics -->
+        <div class="panel-section metrics-footer">
+          <div class="section-header">
+            <span>03 // URBAN TELEMETRY</span>
+            <span id="metric-buildings-count" class="badge-tag">12 BLDS</span>
+          </div>
+          <div class="telemetry-grid">
+            <div class="telemetry-item">
+              <span class="tel-label">EMBODIED BÉTON</span>
+              <span class="tel-val" id="metric-concrete">142,800 t</span>
+            </div>
+            <div class="telemetry-item">
+              <span class="tel-label">CITIZEN CAPACITY</span>
+              <span class="tel-val" id="metric-pop">6,420</span>
+            </div>
+            <div class="telemetry-item">
+              <span class="tel-label">GROUND POROSITY</span>
+              <span class="tel-val" id="metric-porosity">78%</span>
+            </div>
+            <div class="telemetry-item">
+              <span class="tel-label">SOLAR SHADING</span>
+              <span class="tel-val" id="metric-shading">84%</span>
+            </div>
+            <div class="telemetry-item">
+              <span class="tel-label">SKYWAY NETWORK</span>
+              <span class="tel-val" id="metric-skyways">92 IDX</span>
+            </div>
+            <div class="telemetry-item">
+              <span class="tel-label">TECTONIC SAFETY</span>
+              <span class="tel-val" id="metric-safety">94%</span>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Right Dock: Parametric Tectonic Inspector (Intuitive Quick Play + Deep Architectural Controls) -->
+      <aside id="right-dock" class="brut-panel">
+        <div class="panel-section">
+          <div class="section-header">
+            <span>TECTONIC INSPECTOR</span>
+            <span id="insp-code-badge" class="badge-tag accent">ARC-04</span>
+          </div>
+
+          <div id="inspector-empty" class="empty-state hidden">
+            <p>NO STRUCTURE SELECTED</p>
+            <span>Click any building in the 3D viewport to sculpt its massing, pilotis, brise-soleil, and concrete mix—or switch to <strong>POUR BUILDING [B]</strong> to construct a new monument.</span>
+          </div>
+
+          <div id="inspector-content">
+            <div class="building-title-card">
+              <input type="text" id="inp-bld-name" class="bld-name-input" value="Ministry of Urban Tectonics" />
+              <div class="bld-meta-line">
+                <span id="insp-architect">Ref: Kallmann McKinnell & Knowles (1968)</span>
+                <span id="insp-sector">SEC (0, 0)</span>
+              </div>
+            </div>
+
+            <!-- Playful 1-Click Architectural Actions -->
+            <div class="quick-sculpt-bar">
+              <button id="btn-mutate-bld" class="sculpt-btn" title="Generate a bold parametric architectural variation">
+                🎲 MUTATE DNA
+              </button>
+              <button id="btn-ecobrut-bld" class="sculpt-btn" title="Infuse with Eco-Brutalist hanging gardens & weathered moss patina">
+                🌿 ECO-BRUTALIZE
+              </button>
+              <button id="btn-rotate-bld" class="sculpt-btn" title="Rotate Structure 90° (Shortcut: R)">
+                🔄 ROTATE 90°
+              </button>
+              <button id="btn-apply-archetype" class="sculpt-btn" title="Morph selected building into the highlighted Left-Dock Archetype">
+                ⚡ MORPH ARCHETYPE
+              </button>
+            </div>
+
+            <!-- Inspector Layer Tabs: Massing / Envelope / Materiality -->
+            <div class="insp-tabs">
+              <button class="insp-tab active" data-tab="tab-massing">01 MASSING</button>
+              <button class="insp-tab" data-tab="tab-envelope">02 ENVELOPE</button>
+              <button class="insp-tab" data-tab="tab-material">03 BÉTON & ROOF</button>
+            </div>
+
+            <!-- TAB 1: MASSING, PILOTIS & STRUCTURAL CORE -->
+            <div id="tab-massing" class="insp-tab-pane active">
+              <div class="control-group">
+                <div class="slider-row">
+                  <label>SUPERSTRUCTURE STORIES</label>
+                  <span id="val-floors">10 FL</span>
+                </div>
+                <input type="range" id="inp-floors" min="1" max="32" step="1" value="10" />
+              </div>
+
+              <div class="control-group">
+                <div class="slider-row">
+                  <label>FLOOR-TO-FLOOR HEIGHT</label>
+                  <span id="val-floor-height">4.5 m</span>
+                </div>
+                <input type="range" id="inp-floor-height" min="2.8" max="6.0" step="0.1" value="4.5" />
+              </div>
+
+              <div class="control-dual">
+                <div class="control-group">
+                  <div class="slider-row">
+                    <label>SPAN WIDTH (X)</label>
+                    <span id="val-foot-w">42m (3x)</span>
+                  </div>
+                  <input type="range" id="inp-foot-w" min="1" max="4" step="1" value="3" />
+                </div>
+                <div class="control-group">
+                  <div class="slider-row">
+                    <label>SPAN DEPTH (Z)</label>
+                    <span id="val-foot-d">42m (3x)</span>
+                  </div>
+                  <input type="range" id="inp-foot-d" min="1" max="4" step="1" value="3" />
+                </div>
+              </div>
+
+              <div class="control-group">
+                <label class="block-label">MASSING & CANTILEVER PROFILE</label>
+                <select id="inp-massing-profile" class="brut-select full-width">
+                  <option value="monolith">Monolithic Slab (Unité / Barbican)</option>
+                  <option value="inverted_ziggurat">Inverted Ziggurat Crown (Boston City Hall)</option>
+                  <option value="ziggurat">Stepped Pyramid Ziggurat</option>
+                  <option value="cantilever_cluster">Interlocking Voxel Cluster (Habitat / Nakagin)</option>
+                  <option value="split_court">Twin Horizon Courtyard (Salk Institute)</option>
+                  <option value="terraced_step">Terraced Amphitheater Step</option>
+                </select>
+              </div>
+
+              <div class="control-group">
+                <div class="slider-row">
+                  <label>CANTILEVER OVERHANG</label>
+                  <span id="val-cantilever">5.4 m</span>
+                </div>
+                <input type="range" id="inp-cantilever" min="0" max="8.0" step="0.2" value="5.4" />
+              </div>
+
+              <div class="control-group">
+                <div class="slider-row">
+                  <label>PILOTIS GROUND STILTS</label>
+                  <span id="val-pilotis-height">2 STORIES</span>
+                </div>
+                <input type="range" id="inp-pilotis-height" min="0" max="4" step="1" value="2" />
+              </div>
+
+              <div class="control-group">
+                <label class="block-label">PILOTIS TECTONIC GEOMETRY</label>
+                <select id="inp-pilotis-style" class="brut-select full-width">
+                  <option value="v_strut">Le Corbusier Muscular V-Struts</option>
+                  <option value="tree_bent">Geisel 45° Diagonal Tree Bents</option>
+                  <option value="cruciform">Cruciform Structural Piers</option>
+                  <option value="shear_blade">Monolithic Shear Wall Blades</option>
+                  <option value="cylindrical">Cylindrical Concrete Columns</option>
+                </select>
+              </div>
+
+              <div class="control-group">
+                <label class="block-label">CIRCULATION & STRUCTURAL CORE</label>
+                <select id="inp-core-type" class="brut-select full-width">
+                  <option value="internal">Internal Slip-Form Shear Core</option>
+                  <option value="detached_tower">Goldfinger Detached Lift Tower + Skybridges</option>
+                  <option value="twin_external">Twin External Metabolist Cores</option>
+                  <option value="exoskeleton">Perimeter Exoskeleton Mega-Columns</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- TAB 2: ENVELOPE, BRISE-SOLEIL & FENESTRATION -->
+            <div id="tab-envelope" class="insp-tab-pane">
+              <div class="control-group">
+                <label class="block-label">FACADE & FENESTRATION SYSTEM</label>
+                <select id="inp-facade-system" class="brut-select full-width">
+                  <option value="brise_soleil_grid">Egg-Crate Brise-Soleil Grid (Le Corbusier)</option>
+                  <option value="coffered_waffle">Deep Coffered Waffle Facade</option>
+                  <option value="vertical_fins">Precast Vertical Sun-Breaker Fins</option>
+                  <option value="ribbon_band">Bush-Hammered Balcony Parapet Bands</option>
+                  <option value="recessed_loggia">Deep Recessed Shadow Loggias</option>
+                  <option value="capsule_porthole">Plug-In Porthole Capsules (Kurokawa)</option>
+                </select>
+              </div>
+
+              <div class="control-group">
+                <div class="slider-row">
+                  <label>BRISE-SOLEIL FIN DEPTH</label>
+                  <span id="val-brise-depth">1.9 m</span>
+                </div>
+                <input type="range" id="inp-brise-depth" min="0.2" max="2.4" step="0.1" value="1.9" />
+              </div>
+
+              <div class="control-group">
+                <div class="slider-row">
+                  <label>SOLAR LOUVER FIN ANGLE</label>
+                  <span id="val-fin-angle">0°</span>
+                </div>
+                <input type="range" id="inp-fin-angle" min="-45" max="45" step="5" value="0" />
+              </div>
+
+              <div class="control-group">
+                <div class="slider-row">
+                  <label>GLAZING-TO-VOID RATIO</label>
+                  <span id="val-glazing-ratio">36%</span>
+                </div>
+                <input type="range" id="inp-glazing-ratio" min="0.15" max="0.75" step="0.02" value="0.36" />
+              </div>
+
+              <div class="control-group">
+                <div class="slider-row">
+                  <label>STRUCTURAL BAY MODULE</label>
+                  <span id="val-bay-width">4.8 m</span>
+                </div>
+                <input type="range" id="inp-bay-width" min="3.0" max="8.0" step="0.2" value="4.8" />
+              </div>
+            </div>
+
+            <!-- TAB 3: MATERIALITY, BÉTON BRUT & ROOFSCAPE -->
+            <div id="tab-material" class="insp-tab-pane">
+              <div class="control-group">
+                <label class="block-label">BÉTON BRUT CONCRETE AGGREGATE</label>
+                <select id="inp-concrete-finish" class="brut-select full-width">
+                  <option value="board_formed">Board-Formed Pine Grain (Raw Béton Brut)</option>
+                  <option value="bush_hammered">Bush-Hammered Coarse Granite (Barbican)</option>
+                  <option value="travertine_pozzolan">Pozzolanic Roman Travertine (Salk)</option>
+                  <option value="weathered_moss">Weathered Rain Patina & Moss</option>
+                  <option value="ochre_oxide">Warm Terracotta Oxide Concrete</option>
+                  <option value="charcoal_basalt">Charcoal Volcanic Basalt Aggregate</option>
+                </select>
+              </div>
+
+              <div class="control-group">
+                <div class="slider-row">
+                  <label>FORM-TIE CONE HOLE DENSITY</label>
+                  <span id="val-tie-holes">90%</span>
+                </div>
+                <input type="range" id="inp-tie-holes" min="0" max="1" step="0.05" value="0.9" />
+              </div>
+
+              <div class="control-group">
+                <div class="slider-row">
+                  <label>ECO-BRUTALIST PLANTERS & IVY</label>
+                  <span id="val-greenery">10%</span>
+                </div>
+                <input type="range" id="inp-greenery" min="0" max="1" step="0.05" value="0.1" />
+              </div>
+
+              <div class="control-group">
+                <label class="block-label">ROOFSCAPE TECTONIC CROWN</label>
+                <select id="inp-roof-feature" class="brut-select full-width">
+                  <option value="sculptural_vent">Le Corbusier Sculptural Vents & Gym</option>
+                  <option value="barrel_vaults">Barbican Triple Barrel Vaults</option>
+                  <option value="sky_garden">Eco-Brutalist Pergola Sky-Garden</option>
+                  <option value="water_tank">Elevated Concrete Water Tower</option>
+                  <option value="brutalist_spire">Monumental Brutalist Spire</option>
+                  <option value="flat_coffered">Flat Coffered Parapet Slab</option>
+                </select>
+              </div>
+
+              <button id="btn-apply-finish-all" class="secondary-full-btn">
+                APPLY CONCRETE MIX TO ENTIRE SECTOR
+              </button>
+            </div>
+
+            <!-- Architectural Precedent Note -->
+            <div class="monograph-note">
+              <div class="mono-header">ARCHITECTURAL MONOGRAPH NOTE</div>
+              <p id="insp-tectonic-note">
+                Tectonic expression of civic hierarchy: an open public forum at the base, suspended ceremonial chambers at mid-level, and deep-coffered cantilevered office tiers stepping dramatically outward above.
+              </p>
+              <div class="mono-actions">
+                <button id="btn-focus-bld" class="mini-btn">🎯 FOCUS CAMERA</button>
+                <button id="btn-delete-bld" class="mini-btn danger-text">🗑 DEMOLISH</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Floating Street-Walk Controls Banner (Shown in Flâneur Walk Mode) -->
+      <div id="street-walk-hud" class="brut-panel hidden">
+        <div class="street-hud-title">🚶 FIRST-PERSON FLÂNEUR EXPERIENCE</div>
+        <div class="street-hud-controls">
+          <span><strong>WASD / Arrows</strong> Walk</span>
+          <span><strong>Drag Mouse</strong> Look Up at Cantilevers</span>
+          <button id="btn-street-elevation" class="seg-btn">
+            ELEVATION: GROUND PLAZA (+1.7m)
+          </button>
+          <button id="btn-exit-street" class="seg-btn accent-btn">
+            RETURN TO ORBIT
+          </button>
+        </div>
+      </div>
+
+      <!-- Active Simulation Legend Overlay -->
+      <div id="sim-legend-banner" class="brut-panel hidden">
+        <div class="sim-legend-header">
+          <span id="sim-legend-title">01 // SOLAR INSOLATION & BRISE-SOLEIL SHADING STUDY</span>
+          <span id="sim-legend-metric" class="badge-tag accent">SHADING EFFICIENCY: 84%</span>
+        </div>
+        <p id="sim-legend-desc">
+          Evaluates direct solar thermal exposure across facades. Deep brise-soleil fins and cantilevered overhangs shield glazing from high summer sun angles.
+        </p>
+        <div class="gradient-scale">
+          <span id="sim-scale-low">COOL / SHADED (LOW LOAD)</span>
+          <div id="sim-gradient-bar" class="grad-bar solar"></div>
+          <span id="sim-scale-high">HIGH SOLAR EXPOSURE</span>
+        </div>
+      </div>
+
+      <!-- Status Toast Notification -->
+      <div id="status-toast">SECTOR IV // MASTERPLAN INITIALIZED</div>
+
+      <!-- Bottom Environmental, Heliodon, Section Cut & Visual Style Deck -->
+      <footer id="bottom-bar" class="brut-panel">
+        <!-- Heliodon Solar Time & Season Controls -->
+        <div class="bottom-module heliodon-module">
+          <div class="module-top">
+            <span class="group-label">☀️ HELIODON SOLAR CHRONOMETER</span>
+            <span id="val-solar-readout" class="mono-readout">14:30 // ALT 58° AZ 224°</span>
+          </div>
+          <div class="heliodon-controls">
+            <button id="btn-sun-play" class="mini-btn" title="Auto-Animate Solar Orbit">▶ ORBIT SUN</button>
+            <input type="range" id="inp-time-of-day" min="5" max="21.5" step="0.1" value="14.5" title="Solar Time of Day" />
+            <select id="inp-season" class="brut-select compact-select" title="Solar Season / Declination">
+              <option value="172">Summer Solstice (Jun 21)</option>
+              <option value="80">Vernal Equinox (Mar 21)</option>
+              <option value="355">Winter Solstice (Dec 21)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- 3D Architectural Section Cut Slicer -->
+        <div class="bottom-module section-module">
+          <div class="module-top">
+            <span class="group-label">🔪 LIVE 3D SECTION CUT</span>
+            <label class="toggle-switch">
+              <input type="checkbox" id="chk-section-cut" />
+              <span>SLICE ACTIVE</span>
+            </label>
+          </div>
+          <div class="section-controls">
+            <div class="segmented-row" id="section-axis-bar">
+              <button class="seg-btn active" data-axis="x">X-AXIS</button>
+              <button class="seg-btn" data-axis="z">Z-AXIS</button>
+              <button class="seg-btn" data-axis="y">PLAN CUT</button>
+            </div>
+            <input type="range" id="inp-section-pos" min="-85" max="85" step="1" value="0" />
+          </div>
+        </div>
+
+        <!-- Visual Rendering Style -->
+        <div class="bottom-module">
+          <span class="group-label">RENDERING MONOGRAPH STYLE</span>
+          <div class="segmented-row" id="visual-style-bar">
+            <button class="seg-btn active" data-style="photoreal" title="Physically-Based Béton Brut Concrete">
+              BÉTON BRUT
+            </button>
+            <button class="seg-btn" data-style="herve_mono" title="Lucien Hervé High-Contrast 1950s B&W Architectural Photography">
+              LUCIEN HERVÉ B&W
+            </button>
+            <button class="seg-btn" data-style="blueprint" title="Cyanotype Technical Architectural Blueprint">
+              BLUEPRINT
+            </button>
+            <button class="seg-btn" data-style="clay_maquette" title="Museum Plaster & Basswood Scale Model">
+              MAQUETTE
+            </button>
+          </div>
+        </div>
+
+        <!-- Atmospheric Weather Engine -->
+        <div class="bottom-module">
+          <span class="group-label">ATMOSPHERE & MICROCLIMATE</span>
+          <select id="inp-weather" class="brut-select">
+            <option value="clear_brut">01 // Clear Brutalist Sun</option>
+            <option value="london_drizzle">02 // London Drizzle (Wet Concrete)</option>
+            <option value="morning_mist">03 // Chandigarh Morning Mist</option>
+            <option value="golden_cantilever">04 // Golden Hour Chiaroscuro</option>
+            <option value="sodium_night">05 // Sodium-Vapor Midnight</option>
+          </select>
+        </div>
+      </footer>
+    </div>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
